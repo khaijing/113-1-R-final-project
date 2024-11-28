@@ -46,3 +46,20 @@ result <- data %>%
   count(is_saturday_sunday, name = "count")
 
 result
+
+library(lubridate)
+data <- data %>%
+  mutate(date = ymd(date))
+
+print(data)
+
+library(lubridate)
+library(stringr)
+
+data <- data %>%
+  mutate(date = ymd(date),  # 将数字格式的日期转换为日期类型
+         date = format(date, "%Y %b %d"))  # 转换为 "yyyy MMM dd" 格式
+
+print(data)
+
+
