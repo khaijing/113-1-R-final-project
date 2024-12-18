@@ -28,3 +28,5 @@ data <- data %>%
   mutate(年份 = 年份 - 1911)
 
 print(data)
+.Renviron
+.Renviron
