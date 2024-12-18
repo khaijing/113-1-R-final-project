@@ -1,34 +1,33 @@
-library(readr)
-data <- read_csv("政府行政機關辦公日曆表_export.csv")
+# 讀取 CSV 文件
+export <- read_csv("臺北市企業營運總部分布圖.csv", show_col_types = FALSE)
 
-glimpse(data)
-
-# Assuming you have a column `year` in a data frame named `data`
-
-data <- data %>%
+# 新增西元日期範圍欄位
+export <- export |>
   mutate(
-    year= year - 1911
-  )
+    # 確保 USEDATE 是字串
+    USEDATE = as.character(USEDATE),
+    
+    # 分割台灣日期為起始與結束部分
+    taiwan_start = str_sub(USEDATE, 1, 7),  # 提取起始日期部分
+    taiwan_end = str_sub(USEDATE, 9, 15),  # 提取結束日期部分
+    
+    # 將台灣年份轉換為西元年份並替換日期中的年份部分
+    western_start = str_replace(
+      taiwan_start,
+      "^\\d{3}",
+      as.character(as.numeric(str_sub(taiwan_start, 1, 3)) + 1911)
+    ),
+    western_end = str_replace(
+      taiwan_end,
+      "^\\d{3}",
+      as.character(as.numeric(str_sub(taiwan_end, 1, 3)) + 1911)
+    ),
+    
+    # 合併起始日期與結束日期為單一欄位
+    western_USEDATE = paste0(western_start, "-", western_end)  # 格式為 yyyymmdd-yyyymmdd
+  ) |>
+  # 移除不必要的中間欄位
+  select(-taiwan_start, -taiwan_end, -western_start, -western_end)
 
-print(data)
-
-result_dates <- data %>%
-  filter(holidaycategory == "星期六、星期日") %>% # 筛选出“星期六、星期日”的记录
-  select(date) # 选择日期列
-
-result_dates
-
-result <- data %>%
-  mutate(
-    is_saturday_sunday = if_else(holidaycategory == "星期六、星期日", "yes", "no")
-  ) %>%
-  count(is_saturday_sunday, name = "count")
-
-result
-
-data <- data %>%
-  mutate (date = ymd(date),  # 将数字格式的日期转换为日期类型
-         date = format(date, "%Y %b %d"))  # 转换为 "yyyy MMM dd" 格式
-
-print(data)
-
+# 檢視處理後的資料
+print(export)
