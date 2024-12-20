@@ -1,33 +1,45 @@
 # 讀取 CSV 文件
 export <- read_csv("臺北市企業營運總部分布圖.csv")
 
-# 新增西元日期範圍欄位
-export <- export |>
-  mutate(
-    # 確保 USEDATE 是字串格式
-    USEDATE = as.character(USEDATE),
-    
-    # 分割台灣日期為起始與結束部分
-    taiwan_start = str_sub(USEDATE, 1, 7),  # 提取起始日期部分
-    taiwan_end = str_sub(USEDATE, 9, 15),  # 提取結束日期部分
-    
-    # 將台灣年份轉換為西元年份並替換日期中的年份部分
-    western_start = str_replace(
-      taiwan_start,
-      "^\\d{3}",
-      as.character(as.numeric(str_sub(taiwan_start, 1, 3)) + 1911)
-    ),
-    western_end = str_replace(
-      taiwan_end,
-      "^\\d{3}",
-      as.character(as.numeric(str_sub(taiwan_end, 1, 3)) + 1911)
-    ),
-    
-    # 合併轉換後的起始與結束日期
-    western_USEDATE = paste0(western_start, "-", western_end)  # 格式為 yyyymmdd-yyyymmdd
-  ) |>
-  # 移除不必要的中間欄位
-  select(-taiwan_start, -taiwan_end, -western_start, -western_end)
+USEDATE <- as.character(USEDATE)
 
-# 檢視處理後的資料
+library(stringr)
+
+# 假設 USEDATE 是資料框中的一列
+USEDATE <- c("1130909-1131010", "1121231-1130101") # 示例數據
+
+# 將年份和日期分開處理
+western_USEDATE <- str_replace_all(USEDATE, "(\\d{3})(\\d{4})-(\\d{3})(\\d{4})", function(x) {
+  year1 <- as.numeric(substr(x, 1, 3)) + 1911
+  year2 <- as.numeric(substr(x, 11, 13)) + 1911
+  sprintf("%d%s-%d%s", year1, substr(x, 4, 7), year2, substr(x, 14, 17))
+})
+
+# 查看結果
+western_USEDATE
+
 glimpse(export)
+
+library(dplyr)
+
+# 確保 CATEGORY 是字符型，並處理 NA
+filtered_export <- export |> 
+  filter(!is.na(CATEGORY) & str_detect(as.character(CATEGORY), "民生化工類"))
+
+glimpse(filtered_export)
+
+library(dplyr)
+library(stringr)
+
+export <- export |> 
+  mutate(extracted_area = str_extract(ADDR, "(?<=市).*?區"))
+
+glimpse(export)
+
+export <- export |> 
+  select(-city_area)
+
+glimpse(export)
+
+glimpse(export[1:3,])
+
