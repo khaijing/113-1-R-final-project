@@ -25,6 +25,8 @@ export <- export |>
     district = str_extract(ADDR, "(?<=市).+?區")
   )
 
+print(export)
+
 district_data <- export |> 
   dplyr::filter(district == "中山區")
 
